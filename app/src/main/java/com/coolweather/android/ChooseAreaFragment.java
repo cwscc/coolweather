@@ -1,20 +1,17 @@
 package com.coolweather.android;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.Response;
 
 /**
@@ -49,7 +45,8 @@ public class ChooseAreaFragment extends Fragment {
 
     public static final int LEVEL_COUNTY = 2;
 
-    private ProgressBar mProgressBar;
+    //    private ProgressBar mProgressBar;
+    private ProgressDialog mProgressDialog;
 
     private TextView mTitleText;
 
@@ -209,23 +206,11 @@ public class ChooseAreaFragment extends Fragment {
      * @param type
      */
     private void queryFromServer(String address, final String type) {
-        showProgressBar();
-        HttpUtil.sendOkHttpRequest(address, new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                // 通过runOnUiThread()方法回到主线程处理逻辑
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        closeProgressBar();
-                        Toast.makeText(getContext(), "加载失败", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
+        showProgressDialog();
+        HttpUtil.sendOkHttpRequest(address, new okhttp3.Callback() {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                String responseText = response.body().toString();
+                String responseText = response.body().string();
                 boolean result = false;
                 if ("province".equals(type)) {
                     result = Utility.handleProvinceResponse(responseText);
@@ -238,7 +223,7 @@ public class ChooseAreaFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            closeProgressBar();
+                            closeProgressDialog();
                             if ("province".equals(type)) {
                                 queryProvinces();
                             } else if ("city".equals(type)) {
@@ -250,34 +235,55 @@ public class ChooseAreaFragment extends Fragment {
                     });
                 }
             }
+
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                // 通过runOnUiThread()方法回到主线程处理逻辑
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        closeProgressDialog();
+                        Toast.makeText(getContext(), "加载失败", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
         });
     }
 
     /**
      * 显示进度对话框
      */
-    private void showProgressBar() {
-        LinearLayout rootLinearLayout = getActivity().findViewById(R.id.choose_area_root);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.gravity = Gravity.CENTER;
-        if (mProgressBar == null) {
-            mProgressBar = new ProgressBar(getActivity().getApplicationContext());
-            mProgressBar.setLayoutParams(layoutParams);
-            mProgressBar.setVisibility(View.VISIBLE);
+    private void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(getActivity());
+            mProgressDialog.setMessage("正在加载...");
+            mProgressDialog.setCanceledOnTouchOutside(false);
         }
-        getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        rootLinearLayout.addView(mProgressBar);
+        mProgressDialog.show();
+//        LinearLayout rootLinearLayout = getActivity().findViewById(R.id.choose_area_root);
+//        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+//        layoutParams.gravity = Gravity.CENTER;
+//        if (mProgressBar == null) {
+//            mProgressBar = new ProgressBar(getContext());
+//            mProgressBar.setLayoutParams(layoutParams);
+//            mProgressBar.setVisibility(View.VISIBLE);
+//        }
+//        getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+//        rootLinearLayout.addView(mProgressBar);
     }
 
     /**
      * 关闭进度对话框
      */
-    private void closeProgressBar() {
-        LinearLayout rootLinearLayout = getActivity().findViewById(R.id.choose_area_root);
-        if (mProgressBar != null) {
-            mProgressBar.setVisibility(View.GONE);
+    private void closeProgressDialog() {
+        if (mProgressDialog != null) {
+            mProgressDialog.dismiss();
         }
-        rootLinearLayout.removeView(mProgressBar);
-        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+//        LinearLayout rootLinearLayout = getActivity().findViewById(R.id.choose_area_root);
+//        if (mProgressBar != null) {
+//            mProgressBar.setVisibility(View.GONE);
+//        }
+//        rootLinearLayout.removeView(mProgressBar);
+//        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 }
