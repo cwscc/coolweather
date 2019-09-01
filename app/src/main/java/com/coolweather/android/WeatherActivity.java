@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,6 +73,8 @@ public class WeatherActivity extends AppCompatActivity {
 
     private Button mNavButton;
 
+    public ProgressBar mProgressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,6 +107,7 @@ public class WeatherActivity extends AppCompatActivity {
         mSwipeRefreshLayout = findViewById(R.id.swipe_refresh);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mNavButton = findViewById(R.id.nav_button);
+        mProgressBar = findViewById(R.id.weather_progressBar);
 
         // 设置下拉刷新进度条颜色
         mSwipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);

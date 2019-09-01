@@ -1,11 +1,12 @@
 package com.coolweather.android;
 
-import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,8 +48,8 @@ public class ChooseAreaFragment extends Fragment {
 
     public static final int LEVEL_COUNTY = 2;
 
-    //    private ProgressBar mProgressBar;
-    private ProgressDialog mProgressDialog;
+    private ProgressBar mProgressBar;
+//    private ProgressDialog mProgressDialog;
 
     private TextView mTitleText;
 
@@ -89,6 +91,18 @@ public class ChooseAreaFragment extends Fragment {
      */
     private int mCurrentLevel;
 
+    private AppCompatActivity mActivity;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof MainActivity){
+            mActivity = (MainActivity) context;
+        }else if (context instanceof WeatherActivity){
+            mActivity = (WeatherActivity) context;
+        }
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -118,12 +132,12 @@ public class ChooseAreaFragment extends Fragment {
                     queryCounties();
                 } else if (mCurrentLevel == LEVEL_COUNTY) {
                     String weatherId = mCountyList.get(position).getWeatherId();
-                    if (getActivity() instanceof MainActivity){
+                    if (getActivity() instanceof MainActivity) {
                         Intent intent = new Intent(getActivity(), WeatherActivity.class);
                         intent.putExtra("weather_id", weatherId);
                         startActivity(intent);
                         getActivity().finish();
-                    }else if (getActivity() instanceof WeatherActivity){
+                    } else if (getActivity() instanceof WeatherActivity) {
                         WeatherActivity weatherActivity = (WeatherActivity) getActivity();
                         weatherActivity.mDrawerLayout.closeDrawers();
                         weatherActivity.mSwipeRefreshLayout.setRefreshing(true);
@@ -221,7 +235,7 @@ public class ChooseAreaFragment extends Fragment {
      * @param type
      */
     private void queryFromServer(String address, final String type) {
-        showProgressDialog();
+        showProgressBar();
         HttpUtil.sendOkHttpRequest(address, new okhttp3.Callback() {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
@@ -238,7 +252,7 @@ public class ChooseAreaFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            closeProgressDialog();
+                            closeProgressBar();
                             if ("province".equals(type)) {
                                 queryProvinces();
                             } else if ("city".equals(type)) {
@@ -257,7 +271,7 @@ public class ChooseAreaFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        closeProgressDialog();
+                        closeProgressBar();
                         Toast.makeText(getContext(), "加载失败", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -268,37 +282,39 @@ public class ChooseAreaFragment extends Fragment {
     /**
      * 显示进度对话框
      */
-    private void showProgressDialog() {
-        if (mProgressDialog == null) {
-            mProgressDialog = new ProgressDialog(getActivity());
-            mProgressDialog.setMessage("正在加载...");
-            mProgressDialog.setCanceledOnTouchOutside(false);
+    private void showProgressBar() {
+        if (mActivity instanceof MainActivity) {
+            ((MainActivity) mActivity).mProgressBar.setVisibility(View.VISIBLE);
+        }else if (mActivity instanceof WeatherActivity){
+            ((WeatherActivity) mActivity).mProgressBar.setVisibility(View.VISIBLE);
         }
-        mProgressDialog.show();
-//        LinearLayout rootLinearLayout = getActivity().findViewById(R.id.choose_area_root);
-//        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-//        layoutParams.gravity = Gravity.CENTER;
-//        if (mProgressBar == null) {
-//            mProgressBar = new ProgressBar(getContext());
-//            mProgressBar.setLayoutParams(layoutParams);
-//            mProgressBar.setVisibility(View.VISIBLE);
+
+//        mProgressBar = mainActivity.findViewById(R.id.progressBar);
+//        mProgressBar.setVisibility(View.VISIBLE);
+
+//        if (mProgressDialog == null) {
+//            mProgressDialog = new ProgressDialog(getActivity());
+//            mProgressDialog.setMessage("正在加载...");
+//            mProgressDialog.setCanceledOnTouchOutside(false);
 //        }
-//        getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-//        rootLinearLayout.addView(mProgressBar);
+//        mProgressDialog.show();
     }
 
     /**
      * 关闭进度对话框
      */
-    private void closeProgressDialog() {
-        if (mProgressDialog != null) {
-            mProgressDialog.dismiss();
+    private void closeProgressBar() {
+        if (mActivity instanceof MainActivity) {
+            ((MainActivity) mActivity).mProgressBar.setVisibility(View.GONE);
+        }else if (mActivity instanceof WeatherActivity){
+            ((WeatherActivity) mActivity).mProgressBar.setVisibility(View.GONE);
         }
-//        LinearLayout rootLinearLayout = getActivity().findViewById(R.id.choose_area_root);
-//        if (mProgressBar != null) {
-//            mProgressBar.setVisibility(View.GONE);
+
+//        mProgressBar = getActivity().findViewById(R.id.progressBar);
+//        mProgressBar.setVisibility(View.GONE);
+
+//        if (mProgressDialog != null) {
+//            mProgressDialog.dismiss();
 //        }
-//        rootLinearLayout.removeView(mProgressBar);
-//        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 }

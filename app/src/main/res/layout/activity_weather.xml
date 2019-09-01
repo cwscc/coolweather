@@ -61,4 +61,12 @@
 
     </android.support.v4.widget.DrawerLayout>
 
+    <ProgressBar
+        android:id="@+id/weather_progressBar"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="@color/colorPrimary"/>
+
 </FrameLayout>

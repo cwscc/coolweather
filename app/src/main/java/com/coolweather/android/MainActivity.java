@@ -5,13 +5,18 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.ProgressBar;
 
 public class MainActivity extends AppCompatActivity {
+
+    public ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mProgressBar = findViewById(R.id.main_progressBar);
 
         /**
          * 在onCreate()方法的一开始，即刚打开app时，先从SharedPreferences文件中读取缓存数据，
